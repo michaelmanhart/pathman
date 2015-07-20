@@ -320,13 +320,13 @@ class Pathman:
 	###########################################################################
 	def Update(self, l):
 
-		# Update the length moments
-		rho = self.final_matrix.dot(self.time_transfer_ket)[0]
-		self.lbars += rho*numpy.array([l**n for n in range(self.max_moment + 1)])
-
 		# Update the time transfer ket and increment the cumulative sum
 		self.time_transfer_ket = self.time_transfer_matrix.dot(self.time_transfer_ket)
 		self.time_cumulative_ket += self.time_transfer_ket
+
+		# Update the length moments
+		rho = self.final_matrix.dot(self.time_transfer_ket)[0]
+		self.lbars += rho*numpy.array([l**n for n in range(self.max_moment + 1)])
 
 		# Update and increment action kets if indicated
 		if self.calc_action:
