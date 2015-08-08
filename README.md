@@ -14,9 +14,25 @@ This set of scripts calculates statistical properties of the path ensemble for c
 Examples of each of the input and output files for these four scripts are found above with the title "2D_ran_barr_lattice" 
 # Input for pathmen.py:
 
-boundary conditions file (file extension .bc), file contents:
+* boundary conditions file (file extension .bc), file contents:
   
-    line 1 -> Names of initial states and probabilties for starting in each state. Corresponding names and probabilites are joined with a comma, and each etry is separated by a tab or space.
-    line 2 -> Names of final states. Each entry is separated by a tab or space
+The boundary conditions file provides a list of the initial states of the system, the probability to start in each state, and a list of final states. The files are to be written in following format.
+
+    line 1 -> Names of initial state and probabilties for starting in each state. (e.g. state_name_1,probability_1  state_name_2,probability_2  etc.)
+    line 2 -> Names of final states. (e.g. state_name_1 state_name_2  etc.)
+
+* network file (file extension  .network), file contents:
+
+The network file consists of a line for each of the states of the system. 
+The name of the state is followed by a list of neighbors to that state and 
+the transition rate to each of those neighbors. The third column consists of the
+waiting time moments for transitions out of the current state. The list begins and
+requires at least the first moment. The fourth and final column is populated by any 
+general state-depenent quantity. An example entry is as follows:
+
+    state_1 neighbor_1,rate_to_neighbor_1;neighbor_2,rate_to_neighbor_2;... time_moment_1,time_moment_2,... state_function_1,state_function_2,...
+    
+
+    
   
 
