@@ -59,16 +59,50 @@ of that quantity over all states at each given step is also found.
 
 # Input for Generate_random_barrier_model.py:
 
+Note: A description of all commandline options are provided in the help menu:
+python Generate_random_barrier_model.py --help
+
 * energy file (file extension .energy),
 
 The energy file of the random barrier model generator must take the form
 of a list of each possible transition between states and the corresponding
 symmetric energy. The reverse of a given transition does need to be provided
-as symmetry rates are assumed in this model. An example of several lines are 
-as follows:
+as symmetry rates are assumed in this model. If the file does not exist, this script
+will randomly generate the file before producing the final output. An example of 
+several lines are as follows:
 
     line 1 -> state_1->state_2 energy_1
     line 2 -> state_2->state_1 energy_1
     line 3 -> state_2->state_3 energy_2
     ...
+
+# Output of Generate_random_barrier_model.py:
+
+This script generates both necessary files to run a full analysis of the RBM
+with the pathman.py script. Examples of both of these files can be found above
+under the names "2D_ran_barr_lattice.bc" and "2D_ran_barr_lattice.network". The
+.energy file for the system can also be found in the above list.
+
+# Input for Generate_lattice.py:
+
+Note: A description of all commandline options are provided in the help menu:
+python Generate_lattice.py --help
+
+* energy file (file extension .energy),
+
+The energy file for the general lattice model generator must take the form
+of a list of the energy at each state. If the file does not exist, this script
+will randomly generate the file before producing the final output. An example of 
+several lines are as follows:
+
+    line 1 -> state_1 energy_1
+    line 2 -> state_2 energy_2
+    line 3 -> state_3 energy_3
+    ...
+
+# Output of Generate_lattice.py:
+
+This script generates both necessary files to run a full analysis for random 
+walks on a multidimensional lattice with a general energy landscape
+with the pathman.py script.
 
