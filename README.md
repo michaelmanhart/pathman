@@ -49,5 +49,5 @@ each state, respectively.
 * length distribution file (file extension .lengths), file contents:
 
 The length distribution file provides the user with each portion of the total time moments 
-absorbed at each step \ell
+absorbed at each step $\ell$
 
