@@ -42,5 +42,12 @@ column.
 
 * spatial file (file extension .spatial), file contents:
  
+Each line in the spatial file denotes a particular state. The first column specified the name of the 
+state. The second and third columns provide the average visits and the average fraction of time spent in 
+each state, respectively. 
 
+* length distribution file (file extension .lengths), file contents:
+
+The length distribution file provides the user with each portion of the total time moments 
+absorbed at each step \ell
 
