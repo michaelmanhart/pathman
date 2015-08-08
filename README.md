@@ -3,11 +3,10 @@ Path Matrix Algorithm for Networks
 
 This set of scripts calculates statistical properties of the path ensemble for continuous-time random walks (CTRWs) on networks. 
 
-  pathman.py                       - Main algorithm for computing path ensemble properties
+> pathman.py                       - Main algorithm for computing path ensemble properties
+-  Generate_random_barrier_model.py - Creates the input files of pathman.py for a mutlidimensional RBM
 
-  Generate_random_barrier_model.py - Creates the input files of pathman.py for a mutlidimensional RBM
-
-  Generate_lattice.py              - Creates the input files of pathman.py for a general lattice
+* Generate_lattice.py              - Creates the input files of pathman.py for a general lattice
 
   RBM_plot_states_prop.py          - Uses the output of pathman.py for a 2-dimensional RBM and displays various properties
 
