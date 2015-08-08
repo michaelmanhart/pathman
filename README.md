@@ -114,4 +114,4 @@ be visualized must be included:
 python RBM_plot_states_prop.py file_name
 
 The script will then attempt to access files of this name with file extensions .energy, 
-.spatial, and .lengths.
+.spatial, .lengths, and .network.
