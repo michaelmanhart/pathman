@@ -11,7 +11,7 @@ This set of scripts calculates statistical properties of the path ensemble for c
 
 * RBM_plot_states_prop.py          - Uses the output of pathman.py for a 2-dimensional RBM and displays various properties
 
-Examples of each the input and output files for these four scripts are found above with the title "2D_ran_barr_lattice" 
+Examples of each of the input and output files for these four scripts are found above with the title "2D_ran_barr_lattice" 
 # Input for pathmen.py:
 
 boundary conditions file (file extension .bc), file contents:
