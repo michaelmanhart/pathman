@@ -13,6 +13,9 @@ This set of scripts calculates statistical properties of the path ensemble for c
 Examples of each of the input and output files for these four scripts are found above with the title "2D_ran_barr_lattice" 
 # Input for pathmen.py:
 
+Note: A description of all commandline options are provided in the help menu:
+python pathman.py --help
+
 * boundary conditions file (file extension .bc), file contents:
   
 The boundary conditions file provides a list of the initial states of the system, the probability to start in each state, and a list of final states. The files are to be written in following format.
@@ -49,5 +52,10 @@ each state, respectively.
 * length distribution file (file extension .lengths), file contents:
 
 The length distribution file provides the user with each portion of the total time moments 
-absorbed at each step $\ell$
+absorbed at each step. If the path-action is also being calculated, the portion of these
+moments at each step are also provided. The first column in the file specifies the current
+path step. If any general state-dependent quantity is provided and specified, the average
+of that quantity over all states at each given step is also found.
+
+# Input for 
 
