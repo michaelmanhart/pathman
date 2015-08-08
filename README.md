@@ -36,20 +36,20 @@ general state-depenent quantity. An example entry is as follows:
     
 # Output of pathmen.py:
     
-* moments file (file extension .moments), file contents:
+* moments file (file extension .moments),
  
 The moments file provides a list of the final states and all of the desired 
 moments of the FPT distribution. This file may also contain the path-action distribution 
 moments as well if specified. The first line of the file always provides a decriptor for each
 column. 
 
-* spatial file (file extension .spatial), file contents:
+* spatial file (file extension .spatial),
  
 Each line in the spatial file denotes a particular state. The first column specified the name of the 
 state. The second and third columns provide the average visits and the average fraction of time spent in 
 each state, respectively. 
 
-* length distribution file (file extension .lengths), file contents:
+* length distribution file (file extension .lengths),
 
 The length distribution file provides the user with each portion of the total time moments 
 absorbed at each step. If the path-action is also being calculated, the portion of these
@@ -57,5 +57,18 @@ moments at each step are also provided. The first column in the file specifies t
 path step. If any general state-dependent quantity is provided and specified, the average
 of that quantity over all states at each given step is also found.
 
-# Input for 
+# Input for Generate_random_barrier_model.py:
+
+* energy file (file extension .energy),
+
+The energy file of the random barrier model generator must take the form
+of a list of each possible transition between states and the corresponding
+symmetric energy. The reverse of a given transition does need to be provided
+as symmetry rates are assumed in this model. An example of several lines are 
+as follows:
+
+    line 1 -> state_1->state_2 energy_1
+    line 2 -> state_2->state_1 energy_1
+    line 3 -> state_2->state_3 energy_2
+    ...
 
