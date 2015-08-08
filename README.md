@@ -106,3 +106,5 @@ This script generates both necessary files to run a full analysis for random
 walks on a multidimensional lattice with a general energy landscape
 with the pathman.py script.
 
+# Input for RBM_plot_states_prop.py:
+
