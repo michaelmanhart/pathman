@@ -13,8 +13,9 @@ This set of scripts calculates statistical properties of the path ensemble for c
 
 Input for pathmen.py:
 
-  boundary conditions file; file extension .bc
-  contents:
+boundary conditions file (file extension .bc)
+  
+-> file contents:
   
     line 1 -> Names of initial states and probabilties for starting in each state. Corresponding names and probabilites are joined with a comma, and each etry is separated by a tab or space.
     line 2 -> Names of final states. Each entry is separated by a tab or space
