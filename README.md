@@ -1,11 +1,10 @@
-# pathman
-Path Matrix Algorithm for Networks
+# PathMAN: Path Matrix Algorithm for Networks
 
 This set of scripts calculates statistical properties of the path ensemble for continuous-time random walks (CTRWs) on networks. 
 
 # General Overview
 * pathman.py                       - Main algorithm for computing path ensemble properties
-*  Generate_random_barrier_model.py - Creates the input files of pathman.py for a mutlidimensional RBM
+* Generate_random_barrier_model.py - Creates the input files of pathman.py for a mutlidimensional RBM
 
 * Generate_lattice.py              - Creates the input files of pathman.py for a general lattice
 
@@ -32,7 +31,16 @@ general state-depenent quantity. An example entry is as follows:
 
     state_1 neighbor_1,rate_to_neighbor_1;neighbor_2,rate_to_neighbor_2;... time_moment_1,time_moment_2,... state_function_1,state_function_2,...
     
-
+# Output of pathmen.py:
     
-  
+* moments file (file extension .moments), file contents:
+ 
+The moments file provides a list of the final states and all of the desired 
+moments of the FPT distribution. This file may also contain the path-action distribution 
+moments as well if specified. The first line of the file always provides a decriptor for each
+column. 
+
+* spatial file (file extension .spatial), file contents:
+ 
+
 
