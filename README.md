@@ -13,7 +13,7 @@ This set of scripts calculates statistical properties of the path ensemble for c
 * RBM_plot_states_prop.py          - Uses the output of pathman.py for a 2-dimensional RBM and displays various properties
 
 Examples of each of the input and output files for these four scripts are found above with the title "2D_ran_barr_lattice" 
-# Input for pathmen.py:
+# Input for pathman.py:
 
 Note: A description of all commandline options are provided in the help menu:
 python pathman.py --help
@@ -36,7 +36,7 @@ general state-depenent quantity. An example entry is as follows:
 
     state_1 neighbor_1,rate_to_neighbor_1;neighbor_2,rate_to_neighbor_2;... time_moment_1,time_moment_2,... state_function_1,state_function_2,...
     
-# Output of pathmen.py:
+# Output of pathman.py:
     
 * moments file (file extension .moments),
  
