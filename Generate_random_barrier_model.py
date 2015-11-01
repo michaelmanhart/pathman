@@ -1,31 +1,43 @@
 ################################################################################
-# Random Barrier Model Generator 
-# Version 1.0
+#    Random Barrier Model Generator 
+#    Copyright (C) 2015 Michael Manhart and Willow Kion-Crosby
 #
-# Authors: Michael Manhart and Willow Kion-Crosby
-# Contact: mmanhart@fas.harvard.edu
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
 #
-# [Add license, copyright]
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-# [Add brief description]
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#	Contact information:
+#	E-mail: mmanhart@fas.harvard.edu
+#	Mail: 
+#		Harvard University
+#		Department of Chemistry and Chemical Biology
+#		12 Oxford Street
+#		Cambridge, MA 02138, USA
 ################################################################################
 
 
 import numpy
 import scipy.misc
-#import scipy.special
 import random
 import argparse
 import math
-import os
 
 
 ###########################################################################
-# This calculates the symmetric rate between two locations on 
-# the lattice separated by a barrier with height E given 
-# an effective inverse-temperature and maximum rate.
+# This function calculates the symmetric rate between two 
+# locations on the lattice separated by a barrier with 
+# height E given an effective inverse-temperature and maximum rate.
 ###########################################################################
-def find_rate(beta, E, Gamma_0):
+def Find_Rate(beta, E, Gamma_0):
 	
 	# The rate, Gamma, is found via the Boltzmann factor 
 	# calculated using the energy of the barrier that 
@@ -37,7 +49,7 @@ def find_rate(beta, E, Gamma_0):
 	return Gamma
 
 ###########################################################################
-# This calculates the nth moment of an exponential 
+# This function calculates the nth moment of an exponential 
 # distribution given the mean, tau.
 ###########################################################################
 def Exponential_Moment(n, tau): 
@@ -45,12 +57,100 @@ def Exponential_Moment(n, tau):
 	return scipy.misc.factorial(n)*(tau**n)
 	
 ###########################################################################
+# This function randomly generates an energy from
+# an exponential distribution with mean Ebar.
+###########################################################################
+def Exponential_Energy(Ebar): 
+
+	return numpy.random.exponential(Ebar)
+	
+###########################################################################
+# The following function develops a dictionary to represent 
+# the energy landscape. 
+###########################################################################
+def Build_Energy_Landscape(L, D, Ebar, periodic):
+
+	# This function finds the energy landscape by
+	# iterating across the entire lattice starting 
+	# from the site 1_1_1...
+
+	site_coordinates = numpy.ones(D)
+	num_of_sites = L**D
+
+	energy_landscape = {}
+
+	# The step parameter keeps track of 
+	# whether the function should step 
+	# further in the current dimension
+	# or if an edge has been reached.
+	
+	step = False
+	while not step:
+
+		# Label site based on coordinates
+		site = "_".join([str(int(x)) for x in site_coordinates])
+		
+		# Find neighbors
+		neighbors = Find_Neighbors(site, L, D, periodic, '+')
+
+		# Calculate energy for each symmetric transition
+		for neighbor in neighbors:
+			energy = Exponential_Energy(Ebar)
+			energy_landscape[site + '-' + neighbor] = energy
+			energy_landscape[neighbor + '-' + site] = energy
+		
+		# Update coordinates
+		step = True
+		for j in range(D):
+			if step:
+				site_coordinates[j] = site_coordinates[j] + 1
+			if site_coordinates[j]>L:
+				site_coordinates[j] = 1
+				step = True
+			else:
+				step = False
+		
+	return energy_landscape
+	
+###########################################################################
+# The following function finds all the neighbors of 
+# a specified site. 
+###########################################################################
+def Find_Neighbors(site, L, D, periodic, direction):
+	
+	site_coordinates = [int(x) for x in site.split("_")]
+	neighbors = []
+	
+	# If the lattice is not periodic, neighbors beyond 1 or L
+	# are not included. Otherwise each neighbor is defined as
+	# the coordinates of each site a single step away from
+	# the current site in each dimension. Neighbors in the
+	# +/- direction of each dimension are included if the
+	# direction parameter contains the respective character.
+	
+	for i in range(D):
+	
+		if '+' in direction:
+			if site_coordinates[i]+1 <= L:
+				neighbors.append("_".join([str(site_coordinates[j]+int(i == j)) for j in range(D)]))
+			elif periodic:
+				neighbors.append("_".join([str(site_coordinates[j]-(L-1)*int(i == j)) for j in range(D)]))
+		
+		if '-' in direction:
+			if site_coordinates[i]-1 >= 1:
+				neighbors.append("_".join([str(site_coordinates[j]-int(i == j)) for j in range(D)]))
+			elif periodic:
+				neighbors.append("_".join([str(site_coordinates[j]+(L-1)*int(i == j)) for j in range(D)]))
+			
+			
+	return neighbors
+	
+###########################################################################
 # To limit failed lattice development, this function
 # checks various properties of the input parameters.
 ###########################################################################
 def Check_Args(args):
 	
-		
 	if args.lattice_size == 0:
 		print("ERROR: Trying to generate a lattice of size 0.  Exiting.\n")
 		exit()
@@ -91,133 +191,111 @@ def main():
 	
 	Check_Args(args)
 	
-	L = args.lattice_size
-	D = args.dimension
+	# Lattice properties:
 	
-	energy_file = args.energy_file
-	run_name = energy_file
-	max_moment = args.max_moment
-	start_sites = args.start_sites.split(",")
-	final_sites = args.final_sites.split(",")
 	beta = args.beta
 	Ebar = args.E_average
+	
+	D = args.dimension
+	L = args.lattice_size
+	
 	Gamma_0 = args.rate_coefficient
-	pbcheck = args.periodic_boundary
-
-	# Define a site vector to recursively build each location on the lattice
-
-	vector = numpy.ones(D)
+	periodic = args.periodic_boundary
 	
-	# Initialize the rate matrix dictionary, the nearest-neighbor dictionary, and a total list of sites
+	max_moment = args.max_moment
+	file_name = args.energy_file
 	
-	trans_rates = {}
-	list_of_nn = {}
-	sites = ["" for x in range(L**D)]
+	start_sites = args.start_sites.split(",")
+	final_sites = args.final_sites.split(",")
 	
-	# Initialize energy dictionary which will specify the barrier heights between sites
+	# Check if .energy file already exists. If so, read-in energy dictionary,
+	# if not, generate .energy file. A list of sites is also found.
 	
-	energies = {}
-	
-	# Check if .energy file already exists. If so, read in energy dictionary.
-	# If not, generate .energy file
+	energy_landscape = {}
 	
 	try:
-		energy_file = open(energy_file+".energy", "r")
-		energy_file_exists = True
-		
+		energy_file = open(file_name + ".energy", "r")
 		for line in energy_file.readlines():
+			energy_landscape[line.split()[0]] = float(line.split()[1])
 		
-			line_elements = line.split()
-			tran_sites = line_elements[0]
-			
-			energy = line_elements[1]
-			energies[tran_sites] = float(energy)
-			
-		energy_file.close()
-		
+		transitions = energy_landscape.keys()
+
 	except IOError:
 	
-		energy_file_exists = False
-		energy_file = open(energy_file + ".energy", "w")
+		energy_file = open(file_name + ".energy", "w")
+		energy_landscape = Build_Energy_Landscape(L, D, Ebar, periodic)
+		
+		transitions = energy_landscape.keys()
+		transitions.sort()
+		
+		for transition in transitions:
+			energy_file.write(transition+"\t"+str(energy_landscape[transition])+"\n")
+		
+	energy_file.close()
 	
-	for i in range(L**D):
+	# A list of sites can then be extracted from 
+	# the energy landscape dictionary
+	
+	sites = set()
+	
+	for transition in transitions:
+		sites.add(transition.split('-')[0])	
+		sites.add(transition.split('-')[1])
 
-		sites[i] = "_".join([str(int(x)) for x in vector])
-		site = sites[i]
-		trans_rates[site+"->"+site] = 0.0
+	sites = sorted(sites)
 		
-		neighbors = ["" for j in range(2*D)]
-		
-		for j in range(2*D):
-		
-			increment = 1*(j%2 == 0)-1*(j%2 == 1)
-
-			if not pbcheck:
-				nn = "_".join([str(int(vector[x]+(x == int(j/2))*increment)) for x in range(len(vector))])
-			else:
-				nn = "_".join([str(int(vector[x]+(x == int(j/2))*increment)*int(vector[x]+(x == int(j/2))*increment<L+1)*int(vector[x]+(x == int(j/2))*increment>0)+L*int(vector[x]+(x == int(j/2))*increment==0)+int(vector[x]+(x == int(j/2))*increment==L+1)) for x in range(len(vector))])
-			
-			
-			neighbors[j] = nn
-			
-			if (vector[int(j/2)]+increment > 0 and vector[int(j/2)]+increment < L+1) or pbcheck:
-				
-				if energy_file_exists:
-				
-					E = energies[site+"->"+nn]
-				
-				else:
-				
-					E = random.expovariate(1.0/Ebar)
-					energies[site+"->"+nn] = E
-					energies[nn+"->"+site] = E
-				
-				trans_rates[site+"->"+nn] = find_rate(beta, E, Gamma_0)
-				trans_rates[nn+"->"+site] = trans_rates[site+"->"+nn]
-			else:
-				trans_rates[site+"->"+nn] = 0
-				trans_rates[nn+"->"+site] = 0
-				energies[site+"->"+nn] = 0
-				energies[nn+"->"+site] = 0
-				
-		list_of_nn[site] = neighbors
-			
-		shift = True
-		for j in range(D):
-			if shift:
-				vector[j] = vector[j] + 1
-			if vector[j]>L:
-				vector[j] = 1
-				shift = True
-			else:
-				shift = False
+	# Using the energy landscape, the rates from each site to its 
+	# neighbors are found. The average time spent in each site
+	# is then computed via the sum of the rates out of each site.
+	# These values are then written to the .network file. 
 	
-	
-	network_file = open(run_name + ".network", "w")
+	network_file = open(file_name + ".network", "w")
 	
 	for site in sites:
-		rate_total = 0
 		
-		for nn in list_of_nn[site]:
-			rate_total = rate_total + trans_rates[site+"->"+nn]
+		# Find a list of number for each site
+		
+		neighbors = Find_Neighbors(site, L, D, periodic, '+-')
+		transitions = []
+		rate_total = 0.0
+		
+		# For each neighbor, calculate the rate to that 
+		# neighbor via the energy change of the
+		# transition and the inverse temperature.
+		
+		for neighbor in neighbors:
 			
-			if not energy_file_exists:
-				if  trans_rates[site+"->"+nn]>0:
-					energy_file.write(site+"->"+nn+"\t"+str(energies[site+"->"+nn])+"\n")
-					energy_file.write(nn+"->"+site+"\t"+str(energies[nn+"->"+site])+"\n")
+			E = energy_landscape[site+'-'+neighbor]
 		
-		network_file.write(site + "\t" + ";".join([nn+","+str(trans_rates[site+"->"+nn]) for nn in list_of_nn[site] if trans_rates[site+"->"+nn]>0]))
+			rate = Find_Rate(beta, E, Gamma_0)
+			rate_total = rate_total + rate
+			
+			transitions.append(neighbor+","+str(rate))
 		
-		network_file.write("\t"+",".join([str(Exponential_Moment(n, 1./rate_total)) for n in range(1,max_moment + 1)]))
-		network_file.write("\t"+",".join([x for x in site.split("_")]))
+		# Assuming exponentially-distributed waiting time
+		# the specified number of moments are found.
+		
+		site_moments = ",".join([str(Exponential_Moment(n, 1./rate_total)) for n in range(1,max_moment + 1)])
+		
+		# The coordinates of each site is also included in the .network
+		# file as a state dependent function for each dimension.
+		
+		site_coordinates = ",".join([x for x in site.split("_")])
+		
+		network_file.write(site + "\t" + ";".join(transitions))
+		network_file.write("\t" + site_moments)
+		network_file.write("\t" + site_coordinates)
 		network_file.write("\n")
 		
 	network_file.close()
-	if not energy_file_exists:
-		energy_file.close()
 
-	bc_file = open(run_name + ".bc", "w")
+	# The boundary conditions file (.bc) is
+	# written such that all starting sites have 
+	# equal probability.
+
+	bc_file = open(file_name + ".bc", "w")
 	part_func = len(start_sites)
+	
 	bc_file.write("\t".join([start_site+","+str(1./part_func) for start_site in start_sites]))
 	bc_file.write("\n")
 	bc_file.write("\t".join(final_sites))
