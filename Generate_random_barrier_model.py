@@ -218,14 +218,14 @@ def main():
 		for line in energy_file.readlines():
 			energy_landscape[line.split()[0]] = float(line.split()[1])
 		
-		transitions = energy_landscape.keys()
+		transitions = list(energy_landscape.keys())
 
 	except IOError:
 	
 		energy_file = open(file_name + ".energy", "w")
 		energy_landscape = Build_Energy_Landscape(L, D, Ebar, periodic)
 		
-		transitions = energy_landscape.keys()
+		transitions = list(energy_landscape.keys())
 		transitions.sort()
 		
 		for transition in transitions:
