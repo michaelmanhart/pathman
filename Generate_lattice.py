@@ -210,7 +210,7 @@ def main():
 		for line in energy_file.readlines():
 			energy_landscape[line.split()[0]] = float(line.split()[1])
 		
-		sites = energy_landscape.keys()
+		sites = list(energy_landscape.keys())
 		sites.sort()
 
 	except IOError:
@@ -218,7 +218,7 @@ def main():
 		energy_file = open(file_name + ".energy", "w")
 		energy_landscape = Build_Energy_Landscape(L, D, E_0)
 		
-		sites = energy_landscape.keys()
+		sites = list(energy_landscape.keys())
 		sites.sort()
 		
 		for site in sites:
