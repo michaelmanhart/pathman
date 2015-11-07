@@ -4,31 +4,28 @@
 
 This set of scripts calculates statistical properties of the first-passage path ensemble for continuous-time random walks (CTRWs) on networks.  PathMAN requires Python 2 or 3, NumPy, and SciPy.  Full details of the algorithm and some simple examples are in the following paper:
 
-[Manhart M, Kion-Crosby W, Morozov AV.  (2015)  "Path statistics, memory, and coarse-graining of continuous-time random walks on networks."  J Chem Phys, in press.  arXiv:1508.01578](http://arxiv.org/abs/1508.01578).
+[Manhart M, Kion-Crosby W, Morozov AV.  (2015)  "Path statistics, memory, and coarse-graining of continuous-time random walks on networks."  *J Chem Phys*, in press.  arXiv:1508.01578](http://arxiv.org/abs/1508.01578).
 
 PathMAN is licensed under GNU General Public License version 3 (see LICENSE for details).  If you use PathMAN in your research, please cite the paper listed above.
 
 # Overview
 
-Here is an overview of the files included in the repository.
+Here is an overview of the files included in the repository:
 
-* `pathman.py`: main script for calculating path statistics in a CTRW
-
-* `Generate_lattice.py`: generates input files for a simple N-dimensional square lattice to be analyzed by pathman.py
-
-* `Generate_RBM.py`: generates input files for an N-dimensional random barrier model (RBM) on a square lattice to be analyzed by pathman.py
-
+* `pathman.py`: main script for calculating path statistics for a CTRW
+* `Generate_lattice.py`: generates input files for a CTRW on an N-dimensional square lattice to be analyzed by `pathman.py`
+* `Generate_RBM.py`: generates input files for a CTRW on a random barrier model (RBM, on an N-dimensional square lattice) to be analyzed by `pathman.py`
 * `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM
-
-* `Example`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
+* `Example_1Dlattice`: contains input and output files for an example on a 1D lattice (referred to in the documentation below)
+* `Example_RBM`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
 
 # Usage for `pathman.py`
 
-This is the main script that calculates path statistics for a CTRW on any discrete network of states. 
+This is the main script that calculates path statistics for a CTRW on any discrete network of states.
 
 ## Input files
 
-This script requires two input files.  The **network file** defines the network of states and the jump probabilities and waiting time moments of the CTRW.  For example, consider an ordinary Markov process on a 1D lattice of length 10, where rates of jumping between neighboring states are all equal.  The network file would be:
+This script requires two input files.  The **network file** defines the network of states and the jump probabilities and waiting time moments of the CTRW.  The file name is specified with the command line argument `--network`, or if the whole run is named using `--name`, the network file will be assumed to be `NAME.network`.  As an example, consider an ordinary Markov process on a 1D lattice of length 10, where rates of jumping between neighboring states are all equal.  (All input and output files for this example are included in `Example_1Dlattice`.)  The network file would be:
 
 ```
 # State name    Outgoing jump weights   Waiting time moments    State functions
@@ -47,72 +44,72 @@ This script requires two input files.  The **network file** defines the network 
 Each line corresponds to a state in the network, with four columns (separated by whitespace) containing properties of that state:
 
 1. The first column shows the state's name (a string without whitespace).  For the 1D lattice example, we just use the integer position on the lattice.
-2. The second column shows the outgoing jump weights, listing each jump as a pair of parameters (name of destination state and weight) separated by a comma.  Different pairs of jump parameters are separated by semicolons.  Note that the weights do not have to be normalized such that their sum over all outgoing jumps for each state equals 1 (the script will do this automatically), but they must be nonnegative.  Hence, for an ordinary Markov process the jump weights can be given as the transition rates.  In the example each site has jumps to its nearest neighbors on the lattice with equal rates (arbitrarily set to 1.0).
-3. The third column lists the waiting time moments for that state, separated by commas.  Since the zeroth moment is always 1, the first waiting time moment in the list is assumed to be the mean; each line must include at least this first moment.  In the example we include the first four moments, assuming an ordinary Markov process where the mean waiting time is the sum of outgoing jump rates, and the waiting time distribution is exponential.
-4. The fourth column, which is optional, lists values of any state functions (separated by commas) to average over, i.e., the script will calculate the average value for each state function at each jump along the path.  The number of state function values must be the same for all states.  For the example we consider a single state function that is just the position on the lattice.
+2. The second column shows the outgoing jump weights, listing each jump as a pair of parameters (name of destination state and weight) separated by a comma.  Different pairs of jump parameters are separated by semicolons.  The jump weights, when normalized over all outgoing jumps for a state, will be the jump probabilities; the script will normalize them automatically.  Hence, for an ordinary Markov process the jump weights can be given as the transition rates.  In the example each site has jumps to its nearest neighbors on the lattice with equal rates (arbitrarily set to 1.0).
+3. The third column lists the waiting time moments for that state, separated by commas.  Since the zeroth moment is always 1, the first waiting time moment in the list is assumed to be the mean.  Each state must have at least the first moment and at least as many moments as specified by `--max-moment`, which determines the maximum moment of path statistics `pathman.py` will calculate.  In the example we include the first four moments, assuming an ordinary Markov process where the mean waiting time is the inverse of the sum of outgoing jump rates, and the waiting time distribution is exponential.
+4. The fourth column, which is optional, lists values of any state functions (separated by commas) to average over, i.e., the script will calculate the average value for each state function at each jump along the path.  The file must include the same number of state function values for all states.  For the example we consider a single state function that is just the position on the lattice.
 
 The second input is the **boundary conditions file**, which defines the path boundary conditions: the initial probability distribution over states and the set of final states.  For example, with the 1D lattice we might have
 
 ```
 # Initial states and weights
-1,0.5 10,0.5
+5,0.5 6,0.5
 
 # Final states
-5
+1 10
 ```
 
 This file always has two lines:
 
-1. The first line lists state names and their initial probabilities separated by commas, with spaces separating the different states.  The script assumes any states in the network unlisted here have zero initial probability.  The initial probabilities do not need to be normalized, as the script will do this automatically.  For the 1D lattice example, the initial distribution is half at position 1 and half at position 10.
-2. The second line lists the final states separated by spaces.  For the example, there is a single final state in the middle at position 5.
+1. The first line lists state names and their initial probabilities separated by commas, with spaces separating the different states.  The script assumes any states in the network unlisted here have zero initial probability.  The initial probabilities do not need to be normalized, as the script will do this automatically.  For the 1D lattice example, the initial distribution is localized in the middle of the lattice, half at position 5 and half at position 6.
+2. The second line lists the final states separated by spaces.  For the example, there are two final states, one at each edge of the lattice (positions 1 and 10).
 
 ## Output
 
-The script will output basic information to stdout.  For the 1D lattice example, the output should look like:
+The script will print basic output to stdout.  For the 1D lattice example, the output should look like this:
 
 ```
-    Command:                          python pathman.py --name Example_1Dlattice/1Dlattice --max-moment 4
-    Reading network from:             Example_1Dlattice/1Dlattice.network
-    Reading boundary conditions from: Example_1Dlattice/1Dlattice.bc
-    Writing output to:                Example_1Dlattice/1Dlattice
+Command:                          python pathman.py --name Example_1Dlattice/1Dlattice --max-moment 4
+Reading network from:             Example_1Dlattice/1Dlattice.network
+Reading boundary conditions from: Example_1Dlattice/1Dlattice.bc
+Writing output to:                Example_1Dlattice/1Dlattice
+
+Initializing...
+	Reading input files...done.                                     (0.0 seconds)
+	Processing jump probabilities and waiting time moments...done.  (0.002 seconds)
+	Initializing linear algebra...done.                             (0.005 seconds)
+	Total states:                     10
+	Final states:                     1
+	Average (outward) connectivity:   1.7777777777777777
+	Initial unnormalized probability: 1.0
+Running...
+	100 jumps...
+	Done: converged after 360 jumps.                                (0.01 seconds)
+Writing data...done.                                                (0.003 seconds)
     
-    Initializing...
-    	Reading input files...done.                                     (0.0 seconds)
-    	Processing jump probabilities and waiting time moments...done.  (0.002 seconds)
-    	Initializing linear algebra...done.                             (0.005 seconds)
-    	Total states:                     10
-    	Final states:                     1
-    	Average (outward) connectivity:   1.7777777777777777
-    	Initial unnormalized probability: 1.0
-    Running...
-    	100 jumps...
-    	Done: converged after 360 jumps.                                (0.01 seconds)
-    Writing data...done.                                                    (0.003 seconds)
-    
-    Total path moments:
-    	Length             Raw                 Cumulant            Standardized        
-    	lbar0              0.999999990767      0.999999990767      0.999999990767      
-    	lbar1              20.499996492        20.499996492        1.09231990307e-08   
-    	lbar2              720.498663503       300.248807329       1.0                 
-    	lbar3              38635.9892758       11555.5702076       2.22110687057       
-    	lbar4              2849660.68724       697969.003263       10.742363703        
-    
-    	Time               Raw                 Cumulant            Standardized        
-    	tbar0              0.999999990767      0.999999990767      0.999999990767      
-    	tbar1              12.4999978952       12.4999978952       1.05908454071e-08   
-    	tbar2              274.999517268       118.749569888       1.0                 
-    	tbar3              9179.88858872       2773.65645437       2.14340683405       
-    	tbar4              419014.118459       102285.207712       10.2535190307       
-    
-    Run started at:		2015-11-06 21:08:34.439408
-    Run ended at:		2015-11-06 21:08:34.461347
-    Total run time:		0.022 seconds
-    Peak memory usage:	0.17212 GB
+Total path moments:
+	Length             Raw                 Cumulant            Standardized        
+	lbar0              0.999999990767      0.999999990767      0.999999990767      
+	lbar1              20.499996492        20.499996492        1.09231990307e-08   
+	lbar2              720.498663503       300.248807329       1.0                 
+	lbar3              38635.9892758       11555.5702076       2.22110687057       
+	lbar4              2849660.68724       697969.003263       10.742363703        
+
+	Time               Raw                 Cumulant            Standardized        
+	tbar0              0.999999990767      0.999999990767      0.999999990767      
+	tbar1              12.4999978952       12.4999978952       1.05908454071e-08   
+	tbar2              274.999517268       118.749569888       1.0                 
+	tbar3              9179.88858872       2773.65645437       2.14340683405       
+	tbar4              419014.118459       102285.207712       10.2535190307       
+
+Run started at:		2015-11-06 21:08:34.439408
+Run ended at:		2015-11-06 21:08:34.461347
+Total run time:		0.022 seconds
+Peak memory usage:	0.17212 GB
 ```
 
-Besides printing some basic information about the run (command used, input and output file names), PathMAN prints a few basic statistics on the network (number of states, connectivity).  After the numerical calculation has converged, PathMAN prints the total moments (averaged over final states) for both path length and time (as well as action if indicated; see options).
+Besides printing some basic information about the run (command used, input and output file names), `pathman.py` prints a few basic statistics on the network (number of states, connectivity).  After the numerical calculation has converged, `pathman.py` prints the total moments (averaged over final states) for both path length and time (as well as path action if requested; see options).
 
-PathMAN provides more detailed path statistics in a few output files.  These are labeled according to the --name option, with standard extensions:
+A few output files contain more detailed path statistics.  These are all labeled using the argument `--name`, but with different extensions:
 
 * Moments file (`NAME.moments`): this contains a list of final states with path time moments for each.  For the 1D example:
 ```
