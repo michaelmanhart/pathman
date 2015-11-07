@@ -326,9 +326,7 @@ class Pathman:
 
 		# Update the length moments
 		rho = self.final_matrix.dot(self.time_transfer_ket)[0]
-		#print(rho, self.lbars, numpy.array([float(l)**n for n in range(self.max_moment + 1)]))
 		self.lbars += rho*numpy.array([float(l)**n for n in range(self.max_moment + 1)])
-		
 
 		# Update and increment action kets if indicated
 		if self.calc_action:
