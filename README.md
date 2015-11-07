@@ -15,7 +15,7 @@ Here is an overview of the files included in the repository:
 * `pathman.py`: main script for calculating path statistics for a CTRW
 * `Generate_lattice.py`: generates input files for a CTRW on an N-dimensional square lattice to be analyzed by `pathman.py`
 * `Generate_RBM.py`: generates input files for a CTRW on a random barrier model (RBM, on an N-dimensional square lattice) to be analyzed by `pathman.py`
-* `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM
+* `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM (Fig. 5 in the paper)
 * `Example_1Dlattice`: contains input and output files for an example on a 1D lattice (referred to in the documentation below)
 * `Example_RBM`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
 
@@ -68,84 +68,85 @@ This file always has two lines:
 The script will print basic output to stdout.  For the 1D lattice example, the output should look like this:
 
 ```
-Command:                          python pathman.py --name Example_1Dlattice/1Dlattice --max-moment 4
+Command:                          python pathman.py --name Example_1Dlattice/1Dlattice --max-moment 4 --num-state-funcs 1
 Reading network from:             Example_1Dlattice/1Dlattice.network
 Reading boundary conditions from: Example_1Dlattice/1Dlattice.bc
 Writing output to:                Example_1Dlattice/1Dlattice
 
 Initializing...
 	Reading input files...done.                                     (0.0 seconds)
-	Processing jump probabilities and waiting time moments...done.  (0.002 seconds)
-	Initializing linear algebra...done.                             (0.005 seconds)
+	Processing jump probabilities and waiting time moments...done.  (0.003 seconds)
+	Initializing linear algebra...done.                             (0.006 seconds)
 	Total states:                     10
-	Final states:                     1
-	Average (outward) connectivity:   1.7777777777777777
+	Final states:                     2
+	Average (outward) connectivity:   2.0
 	Initial unnormalized probability: 1.0
 Running...
 	100 jumps...
-	Done: converged after 360 jumps.                                (0.01 seconds)
-Writing data...done.                                                (0.003 seconds)
-    
+	Done: converged after 407 jumps.                                (0.016 seconds)
+Writing data...done.                                            	(0.004 seconds)
+
 Total path moments:
 	Length             Raw                 Cumulant            Standardized        
-	lbar0              0.999999990767      0.999999990767      0.999999990767      
-	lbar1              20.499996492        20.499996492        1.09231990307e-08   
-	lbar2              720.498663503       300.248807329       1.0                 
-	lbar3              38635.9892758       11555.5702076       2.22110687057       
-	lbar4              2849660.68724       697969.003263       10.742363703        
+	lbar0              0.999999999987      0.999999999987      0.999999999987      
+	lbar1              19.9999999947       19.9999999947       1.55815137326e-11   
+	lbar2              659.999997743       259.999997956       1.0                 
+	lbar3              31915.9990411       8315.99917428       1.9836014666        
+	lbar4              2052899.59194       400819.666768       8.92928510491       
 
 	Time               Raw                 Cumulant            Standardized        
-	tbar0              0.999999990767      0.999999990767      0.999999990767      
-	tbar1              12.4999978952       12.4999978952       1.05908454071e-08   
-	tbar2              274.999517268       118.749569888       1.0                 
-	tbar3              9179.88858872       2773.65645437       2.14340683405       
-	tbar4              419014.118459       102285.207712       10.2535190307       
+	tbar0              0.999999999987      0.999999999987      0.999999999987      
+	tbar1              9.99999999734       9.99999999734       1.50147223248e-11   
+	tbar2              169.999999434       69.9999994876       1.0                 
+	tbar3              4241.99987929       1141.99989602       1.94992994659       
+	tbar4              140735.974135       28355.9788619       8.78693454663       
 
-Run started at:		2015-11-06 21:08:34.439408
-Run ended at:		2015-11-06 21:08:34.461347
-Total run time:		0.022 seconds
-Peak memory usage:	0.17212 GB
+Run started at:		2015-11-07 00:56:06.612505
+Run ended at:		2015-11-07 00:56:06.643924
+Total run time:		0.031 seconds
+Peak memory usage:	0.172104 GB
 ```
 
 Besides printing some basic information about the run (command used, input and output file names), `pathman.py` prints a few basic statistics on the network (number of states, connectivity).  After the numerical calculation has converged, `pathman.py` prints the total moments (averaged over final states) for both path length and time (as well as path action if requested; see options).
 
 A few output files contain more detailed path statistics.  These are all labeled using the argument `--name`, but with different extensions:
 
-* Moments file (`NAME.moments`): this contains a list of final states with path time moments for each.  For the 1D example:
+* Moments file (`NAME.moments`): this contains a list of final states with path time moments (and path action moments if specified) for each.  The moments are unconditional, i.e., they are weighted by the total probability of reaching that final state from the initial distribution (commitment probability).  For the 1D example, this will be:
 ```
-# Final_state       tbar0               tbar1               tbar2               tbar3               tbar4   
-5                   0.999999990767      12.4999978952       274.999517268       9179.88858872       419014.118459 
+# Final_state       tbar0               tbar1               tbar2               tbar3               tbar4         
+1                   0.499999999994      4.99999999867       84.9999997172       2120.99993964       70367.9870674 
+10                  0.499999999994      4.99999999867       84.9999997172       2120.99993964       70367.9870674
 ```
-* Spatial distribution file (`NAME.spatial`): this contains a list of all states with the average number of visits and the average fraction of time at each.  For final states, the average number of visits corresponds to the commitment probability.  For the example:
+* Spatial distribution file (`NAME.spatial`): this contains a list of all states with the average number of visits and the average fraction of time at each.  For final states, the average number of visits corresponds to the commitment probability.  For the example this will look like:
 ```
 # State             Average_visits      Average_fraction_of_time
-1                   2.0                 0.160000026941
-2                   3.0                 0.120000020206
-3                   2.0                 0.0800000134706
-4                   0.999999999999      0.0400000067353
-5                   0.999999990767      0.0
-6                   0.999999983298      0.0400000060672
-7                   1.9999999666        0.0800000121345
-8                   2.99999995627       0.120000018457
-9                   3.99999994595       0.160000024779
-10                  2.49999997298       0.200000031515
+1                   0.499999999994      0.0
+2                   0.999999999988      0.0500000000127
+3                   1.99999999998       0.100000000025
+4                   2.99999999997       0.150000000038
+5                   3.99999999997       0.200000000052
+6                   3.99999999997       0.200000000052
+7                   2.99999999997       0.150000000038
+8                   1.99999999998       0.100000000025
+9                   0.999999999988      0.0500000000127
+10                  0.499999999994      0.0
 ```
-* Length distribution file (`NAME.lengths`): this gives the total time moments absorbed at final states at each jump along the path.  For the example, 
+* Length distribution file (`NAME.lengths`): this gives the total time moments absorbed at final states at each jump (`l`) along the path, along with the average value of any state functions at that jump.  For the example this will be:
 ```
-# l                 tbar0               tbar1               tbar2               tbar3               tbar4           
-0                   0.0                 0.0                 0.0                 0.0                 0.0         
-1                   0.0                 0.0                 0.0                 0.0                 0.0             
-2                   0.0                 0.0                 0.0                 0.0                 0.0             
-3                   0.0                 0.0                 0.0                 0.0                 0.0             
-4                   0.0625              0.15625             0.5                 1.96875             9.28125         
-5                   0.03125             0.09375             0.34375             1.5                 7.640625        
-6                   0.0625              0.234375            1.046875            5.4609375           32.765625       
-7                   0.0390625           0.1640625           0.80078125          4.4765625           28.3359375      
-8                   0.0546875           0.2734375           1.56640625          10.16015625         73.8984375      
-9                   0.0390625           0.2109375           1.28515625          8.75390625          66.1640625      
-10                  0.046875            0.29296875          2.046875            15.861328125        135.41015625
+# l                 tbar0               tbar1               tbar2               tbar3               tbar4               state_func0         
+0                   0.0                 0.0                 0.0                 0.0                 0.0                 5.5                 
+1                   0.0                 0.0                 0.0                 0.0                 0.0                 5.5                 
+2                   0.0                 0.0                 0.0                 0.0                 0.0                 5.5                 
+3                   0.0                 0.0                 0.0                 0.0                 0.0                 5.5                 
+4                   0.0625              0.125               0.3125              0.9375              3.28125             5.5                 
+5                   0.03125             0.078125            0.234375            0.8203125           3.28125             5.5                 
+6                   0.0625              0.1875              0.65625             2.625               11.8125             5.5                 
+7                   0.0390625           0.13671875          0.546875            2.4609375           12.3046875          5.5                 
+8                   0.0546875           0.21875             0.984375            4.921875            27.0703125          5.5                 
+9                   0.0390625           0.17578125          0.87890625          4.833984375         29.00390625         5.5                 
+10                  0.046875            0.234375            1.2890625           7.734375            50.2734375          5.5 
 ...
-360                 4.33200405896e-14   9.74700913266e-12   2.20057993487e-09   4.9852056295e-07    0.000113319869237 
+407                 8.0618015937e-13    1.64057662432e-10   3.34677631361e-08   6.84415756133e-06   0.00140305230007    5.5    
 ```
 
 ## Options
@@ -156,79 +157,72 @@ To bring up a list of all command line options and their descriptions for PathMA
 python pathman.py --help
 ```
 
+Besides options for specifying the input and output files, there are options to tell `pathman.py` to calculate statistics of path action and state functions and to modify the convergence conditions.
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+# Usage for `Generate_lattice.py`
 
-# Input for Generate_random_barrier_model.py:
+This script generates input files (network and boundary condition files) that can be read by `pathman.py` for a CTRW on an N-dimensional square lattice.  The help menu contains descriptions of all command line options:
 
-Note: A description of all commandline options are provided in the help menu:
-python Generate_random_barrier_model.py --help
-
-* energy file (file extension .energy),
-
-The energy file of the random barrier model generator must take the form
-of a list of each possible transition between states and the corresponding
-symmetric energy. The reverse of a given transition does need to be provided
-as symmetry rates are assumed in this model. If the file does not exist, this script
-will randomly generate the file before producing the final output. An example of 
-several lines are as follows:
-
-    line 1 -> state_1->state_2 energy_1
-    line 2 -> state_2->state_1 energy_1
-    line 3 -> state_2->state_3 energy_2
-    ...
-
-# Output of Generate_random_barrier_model.py:
-
-This script generates both necessary files to run a full analysis of the RBM
-with the pathman.py script. Examples of both of these files can be found above
-under the names "2D_ran_barr_lattice.bc" and "2D_ran_barr_lattice.network". The
-.energy file for the system can also be found in the above list.
-
-# Input for Generate_lattice.py:
-
-Note: A description of all commandline options are provided in the help menu:
+```
 python Generate_lattice.py --help
+```
 
-* energy file (file extension .energy),
+In particular, the user can specify the lattice dimension and number of points, as well as initial and final states for the CTRW.  The CTRW is assumed to be a Markov process with Metropolis transition rates on an energy landscape over the lattice.  The user can specify the energy landscape in an input file using `--energy`.  For example, a linear energy ramp on the 1D lattice would be
 
-The energy file for the general lattice model generator must take the form
-of a list of the energy at each state. If the file does not exist, this script
-will randomly generate the file before producing the final output. An example of 
-several lines are as follows:
+```
+# State     Energy
+1           1.0
+2           0.8888888888888889
+3           0.7777777777777778
+4           0.6666666666666667
+5           0.5555555555555556
+6           0.4444444444444444
+7           0.3333333333333333
+8           0.2222222222222222
+9           0.1111111111111111
+10          0.0
+```
 
-    line 1 -> state_1 energy_1
-    line 2 -> state_2 energy_2
-    line 3 -> state_3 energy_3
-    ...
+If no input energy file is given, the script assumes a linear energy function.
 
-# Output of Generate_lattice.py:
+# Usage for `Generate_RBM.py`
 
-This script generates both necessary files to run a full analysis for random 
-walks on a multidimensional lattice with a general energy landscape
-with the pathman.py script.
+This script is similar to `Generate_lattice.py`, but for the random barrier model.  As before the help menu contains descriptions of all command line options:
 
-# Input for RBM_plot_states_prop.py:
+```
+python Generate_RBM.py --help
+```
 
-On the commandline the name of the file which represents the current RBM to 
-be visualized must be included:
+The user can specify the energy barriers in an input file using `--energy`.  Since an energy barrier lies between states, each line specifies a pair of neighboring states and the height of the energy barrier between them.  The energy barriers must be symmetric.  For example, on a 1D lattice we might have
 
-python RBM_plot_states_prop.py file_name
+```
+# State_pair     Energy
+1-2              1.0
+2-1              1.0
+2-3              1.0
+3-2              1.0
+3-4              1.0
+4-3              1.0
+4-5              1.0
+5-4              1.0
+5-6              1.0
+6-5              1.0
+6-7              1.0
+7-6              1.0
+7-8              1.0
+8-7              1.0
+8-9              1.0
+9-8              1.0
+9-10             1.0
+10-9             1.0
+```
 
-The script will then attempt to access files of this name with file extensions .energy, 
-.spatial, .lengths, and .network.
+# Usage for `Plot_RBM_output.py`:
 
+This script makes a few simple plots of path statistics for the 2D RBM, similar to each row of Fig. 5 in the paper.  The usage for this script is
+
+```
+python Plot_RBM_output.py NAME
+```
+
+where the RBM energy file and input/output files from `pathman.py` all have root `NAME` (e.g., `NAME.energy`, `NAME.network`, `NAME.spatial`, `NAME.lengths`).
