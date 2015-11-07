@@ -4,23 +4,20 @@
 
 This set of scripts calculates statistical properties of the first-passage path ensemble for continuous-time random walks (CTRWs) on networks.  PathMAN requires Python 2 or 3, NumPy, and SciPy.  Full details of the algorithm and some simple examples are in the following paper:
 
-[Manhart M, Kion-Crosby W, Morozov AV.  (2015)  "Path statistics, memory, and coarse-graining of continuous-time random walks on networks."  J Chem Phys, in press.  arXiv:1508.01578](http://arxiv.org/abs/1508.01578).
+[Manhart M, Kion-Crosby W, Morozov AV.  (2015)  "Path statistics, memory, and coarse-graining of continuous-time random walks on networks."  *J Chem Phys*, in press.  arXiv:1508.01578](http://arxiv.org/abs/1508.01578).
 
 PathMAN is licensed under GNU General Public License version 3 (see LICENSE for details).  If you use PathMAN in your research, please cite the paper listed above.
 
 # Overview
 
-Here is an overview of the files included in the repository.
+Here is an overview of the files included in the repository:
 
-* `pathman.py`: main script for calculating path statistics in a CTRW
-
-* `Generate_lattice.py`: generates input files for a simple N-dimensional square lattice to be analyzed by pathman.py
-
-* `Generate_RBM.py`: generates input files for an N-dimensional random barrier model (RBM) on a square lattice to be analyzed by pathman.py
-
+* `pathman.py`: main script for calculating path statistics for a CTRW
+* `Generate_lattice.py`: generates input files for a CTRW on an N-dimensional square lattice to be analyzed by `pathman.py`
+* `Generate_RBM.py`: generates input files for a CTRW on a random barrier model (RBM, on an N-dimensional square lattice) to be analyzed by `pathman.py`
 * `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM
-
-* `Example`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
+* `Example_1Dlattice`: contains input and output files for an example on a 1D lattice
+* `Example_RBM`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
 
 # Usage for `pathman.py`
 
