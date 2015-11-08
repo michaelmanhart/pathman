@@ -160,7 +160,8 @@ def Check_Args(args):
 		
 	if args.energy_file == None:
 		args.energy_file = str(args.dimension)+"D_lattice"
-
+	if args.name == None:
+		args.name = args.energy_file
 def main():
 
 	# Read user input lattice parameters
@@ -176,6 +177,7 @@ def main():
 	parser.add_argument("--E-scale",		type=float, 	default=1.0,	action="store",		help="Energy scale of landscape (default 1)")
 	parser.add_argument("--rate-coefficient",	type=float, 	default=1.0,	action="store",		help="Rate coefficient (default 1)")
 	parser.add_argument("--energy-file",		type=str, 			action="store",		help="Name of energy landscape file that will be used to compute rates between sites on the lattice. If the file does not exist, it will be generated as a linear potential proportional to the sum of the coordinates at each position. File extension is '.energy' (default [specified dimension]D_lattice.energy)")
+	parser.add_argument("--name",		type=str, 			action="store",		help="Name of output files to be generated. If no name is specified, the energy file name will be used.")
 	parser.add_argument("--periodic-boundary", 					action="store_true",	help="Set if the lattice has periodic boundary conditions")
 	
 	args = parser.parse_args()
@@ -195,6 +197,7 @@ def main():
 	
 	max_moment = args.max_moment
 	file_name = args.energy_file
+	out_file_name = args.name
 	
 	start_sites = args.start_sites.split(",")
 	final_sites = args.final_sites.split(",")
@@ -231,7 +234,7 @@ def main():
 	# is then computed via the sum of the rates out of each site.
 	# These values are then written to the .network file. 
 	
-	network_file = open(file_name + ".network", "w")
+	network_file = open(out_file_name + ".network", "w")
 	
 	for site in sites:
 		
@@ -276,7 +279,7 @@ def main():
 	# written such that all starting sites have 
 	# equal probability.
 
-	bc_file = open(file_name + ".bc", "w")
+	bc_file = open(out_file_name + ".bc", "w")
 	part_func = len(start_sites)
 	
 	bc_file.write("\t".join([start_site+","+str(1./part_func) for start_site in start_sites]))
