@@ -36,7 +36,7 @@ from bisect import bisect_left
 
 
 ################################################################################
-# This class contains the data for the CTRW model and carries out all 
+# This class contains the parameters for the CTRW model and carries out all 
 # calculations.  Initializing the class reads the input files and defines all
 # matrix and vector objects.  The Run function iterates over the recursion
 # relations to perform sums over all paths.  The Output_Data function then 
@@ -144,11 +144,11 @@ class Pathman:
 		# Jump action moment matrices (Qtilde), dimensions N x N
 		jam_matrices = [scipy.sparse.dok_matrix((self.num_states, self.num_states), dtype=float) for i in range(self.max_moment + 1)]
 
-		# Waiting time moment matrices (Theta), list of m+1 N x N diagonal 
+		# Waiting time moment matrices (Theta), list of nmax+1 N x N diagonal 
 		# matrices with the first one being an identity
 		self.wtm_matrices = [scipy.sparse.identity(self.num_states, format="dok")] + [scipy.sparse.dok_matrix((self.num_states, self.num_states), dtype=float) for i in range(self.max_moment)]
 
-		# Functions of state (H), list of N x N diagonal matrices, one for 
+		# Functions of state (B), list of N x N diagonal matrices, one for 
 		# each state function in network file
 		state_func_matrices = [scipy.sparse.dok_matrix((self.num_states, self.num_states), dtype=float) for i in range(self.num_state_funcs)]
 
@@ -221,20 +221,16 @@ class Pathman:
 			else:
 				int_bra[0, self.Get_State_Index(s)] = 1.
 
-		# Construct F matrix ( (m+1) x N(m+1) ): m+1 copies of <final| along the diagonal
+		# Construct F matrix ( (nmax+1) x N(nmax+1) ): nmax+1 copies of <final| along the diagonal
 		self.final_matrix = scipy.sparse.block_diag([final_bra for i in range(self.max_moment + 1)], format="csr", dtype="float")
 
 		if self.num_state_funcs > 0:
-			# Construct A matrices (number of state functions x N(m+1)) for intermediate and final states 
-			self.int_A_matrix = scipy.sparse.vstack( [int_bra.dot(state_func_matrices[i]) for i in range(self.num_state_funcs)] )
-			self.int_A_matrix = scipy.sparse.hstack( [self.int_A_matrix, scipy.sparse.csr_matrix((self.num_state_funcs, self.num_states*self.max_moment), dtype="float")], format="csr")
+			# Construct B matrices (number of state functions x N(nmax+1)) for intermediate and final states 
+			self.int_B_matrix = scipy.sparse.vstack( [int_bra.dot(state_func_matrices[i]) for i in range(self.num_state_funcs)] )
+			self.int_B_matrix = scipy.sparse.hstack( [self.int_B_matrix, scipy.sparse.csr_matrix((self.num_state_funcs, self.num_states*self.max_moment), dtype="float")], format="csr")
 
-			self.final_A_matrix = scipy.sparse.vstack( [final_bra.dot(state_func_matrices[i]) for i in range(self.num_state_funcs)] )
-			self.final_A_matrix = scipy.sparse.hstack( [self.final_A_matrix, scipy.sparse.csr_matrix((self.num_state_funcs, self.num_states*self.max_moment), dtype="float")], format="csr")
-		# Construct A matrix ( (n+1) x N(n+1) ): <all|Theta^(j) in the first column, zeros elsewhere
-		#all_bra = scipy.sparse.coo_matrix(numpy.ones((1, self.num_states)))
-		#self.weighted_all_matrix = scipy.sparse.vstack( [all_bra*self.wtm_matrices[i] for i in range(self.max_moment + 1)] )
-		#self.weighted_all_matrix = scipy.sparse.hstack( [self.weighted_all_matrix, scipy.sparse.csr_matrix((self.max_moment + 1, self.num_states*self.max_moment), dtype="float")], format="csr")
+			self.final_B_matrix = scipy.sparse.vstack( [final_bra.dot(state_func_matrices[i]) for i in range(self.num_state_funcs)] )
+			self.final_B_matrix = scipy.sparse.hstack( [self.final_B_matrix, scipy.sparse.csr_matrix((self.num_state_funcs, self.num_states*self.max_moment), dtype="float")], format="csr")
 
 		# Calculate binomial coefficients
 		binomials = numpy.zeros( (self.max_moment + 1, self.max_moment + 1) )
@@ -242,11 +238,11 @@ class Pathman:
 			for j in range(n + 1):
 				binomials[n][j] = scipy.special.gamma(n + 1)/scipy.special.gamma(j + 1)/scipy.special.gamma(n - j + 1)
 
-		# Construct the time transfer matrix K ( N(n+1) x N(n+1) )
+		# Construct the time transfer matrix K ( N(nmax+1) x N(nmax+1) )
 		blocks = [ [binomials[i][i-j]*weighted_jump_matrices[i - j] for j in range(i + 1)] + [None for j in range(i + 1, self.max_moment + 1)] for i in range(self.max_moment + 1) ]
 		self.time_transfer_matrix = scipy.sparse.bmat(blocks, format="csr", dtype="float")
 
-		# Construct the action transfer matrix G ( N(n+1) x N(n+1) )
+		# Construct the action transfer matrix G ( N(nmax+1) x N(nmax+1) )
 		blocks = [ [binomials[i][i-j]*jam_matrices[i - j] for j in range(i + 1)] + [None for j in range(i + 1, self.max_moment + 1)] for i in range(self.max_moment + 1) ]
 		self.action_transfer_matrix = scipy.sparse.bmat(blocks, format="csr", dtype="float")
 
@@ -268,9 +264,9 @@ class Pathman:
 		self.tbarl = [] #[self.final_matrix.dot(self.time_transfer_ket)]
 
 		if self.num_state_funcs > 0:
-			# Initialize hbar(l); it is the average of state function h at the
+			# Initialize Bbar(l); it is the average of state function h at the
 			# lth jump
-			self.hbarl = [] #[self.state_func_matrix.dot(self.time_transfer_ket)]
+			self.Bbarl = [] #[self.state_func_matrix.dot(self.time_transfer_ket)]
 
 		Print("done.".ljust(34) + "(" + str(round(time() - mytime, 3)) + " seconds)\n")
 
@@ -342,16 +338,16 @@ class Pathman:
 		# Append total time moments to tbar(l)
 		self.tbarl.append(self.final_matrix.dot(self.time_transfer_ket))
 
-		# Append state functions to hbar(l): note the difference in final vs.
+		# Append state functions to Bbar(l): note the difference in final vs.
 		# intermediate states
 		if self.num_state_funcs > 0:
-			self.hbarl.append(self.final_A_matrix.dot(self.time_cumulative_ket) + self.int_A_matrix.dot(self.time_transfer_ket))
+			self.Bbarl.append(self.final_B_matrix.dot(self.time_cumulative_ket) + self.int_B_matrix.dot(self.time_transfer_ket))
 
 		# If the debug flag is set, write the entire time transfer ket to file
 		if self.debug:
 			self.debug_file.write(str(l) + "\t")
 			for s in self.all_states:
-				ind = Get_State_Index(s)
+				ind = self.Get_State_Index(s)
 				self.debug_file.write(s + ",")
 				moments = [str(self.time_transfer_ket[ind + i*self.num_states]) for i in range(self.max_moment + 1)]
 				self.debug_file.write(",".join(moments) + "\t")
@@ -379,7 +375,7 @@ class Pathman:
 	def Run(self):
 
 		# List of jump checkpoints to output: 100, 500, 1000, 5000, ...
-		checkpoints = sorted([10**i for i in range(2, 10)] + [5*(10**i) for i in range(2, 10)])
+		checkpoints = sorted([10**i for i in range(2, 15)] + [5*(10**i) for i in range(2, 15)])
 		checkpoints.reverse()
 
 		# If in debug mode, open debug file for writing
@@ -395,9 +391,13 @@ class Pathman:
 		total_time_moments = self.Total_Time_Moments()
 		prev_max_moment = total_time_moments[self.max_moment]
 
+		converged = False
+
 		# Loop over path lengths up to max_jumps
-		if sys.version_info.major == 3:	l_range = range(1, self.max_jumps + 1)
-		else:						l_range = xrange(1, self.max_jumps + 1)
+		if sys.version_info.major == 3:
+			l_range = range(1, self.max_jumps + 1)
+		else:
+			l_range = xrange(1, self.max_jumps + 1)
 		for l in l_range:
 
 			# Print jump number l if it is a checkpoint
@@ -417,15 +417,16 @@ class Pathman:
 			cur_prob = total_time_moments[0]
 			cur_max_moment = total_time_moments[self.max_moment]
 
-			# Return if converged
-			if not self.no_converge:
-				if self.Has_Converged(cur_prob, cur_max_moment, prev_max_moment):
-					Print("\n\t" + ("Done: converged after " + str(l) + " jumps.").ljust(64))
-					return						
+			# Check convergence
+			if self.Has_Converged(cur_prob, cur_max_moment, prev_max_moment):
+				converged = True
+			if (not self.no_converge) and converged:
+				Print("\n\t" + ("Done: converged after " + str(l) + " jumps.").ljust(64))
+				return							
 
 			prev_max_moment = cur_max_moment
 
-		if self.Has_Converged(cur_prob, cur_max_moment, prev_max_moment):
+		if converged:
 			Print("\n\tDone: reached MAX_JUMPS and also converged.".ljust(66))
 		else:
 			Print("\n\tWARNING: Reached MAX_JUMPS without converging.".ljust(66))
@@ -446,8 +447,6 @@ class Pathman:
 
 		# Print headers
 		output_file.write("# Final_state".ljust(20))
-		#for i in range(self.max_moment + 1): 
-		#	output_file.write(("lbar" + str(i)).ljust(20))
 		for i in range(self.max_moment + 1): 
 			output_file.write(("tbar" + str(i)).ljust(20))
 		if self.calc_action:
@@ -455,13 +454,10 @@ class Pathman:
 				output_file.write(("sbar" + str(i)).ljust(20))
 		output_file.write("\n")
 
-		# For each final state, print length, time, and action moments
+		# For each final state, print time and action moments
 		for s in self.final_states:
 			output_file.write(s.ljust(20))
 			ind = self.Get_State_Index(s)
-			#for i in range(self.max_moment + 1): 
-			#	moment = self.length_cumulative_ket[ind + i*self.num_states]
-			#	output_file.write(str(moment).ljust(20))
 			for i in range(self.max_moment + 1): 
 				moment = self.time_cumulative_ket[ind + i*self.num_states]
 				output_file.write(str(moment).ljust(20))
@@ -495,7 +491,7 @@ class Pathman:
 				for x in self.tbarl[i]:
 					output_file.write(str(x).ljust(20))
 				if self.num_state_funcs > 0:
-					for x in self.hbarl[i]:
+					for x in self.Bbarl[i]:
 						output_file.write(str(x).ljust(20))
 				output_file.write("\n")
 
@@ -543,7 +539,7 @@ def Check_Args(args):
 		Print("ERROR: Maximum moment must be at least 1.  Exiting.\n")
 		exit()
 	if args.max_moment > 6:
-		Print("WARNING: Maximum moment is > 6, which may be memory-intensive and/or numerically unstable.\n")
+		Print("WARNING: Maximum moment is > 6, which may be memory-intensive and/or numerically unreliable.\n")
 	if (args.converge < 0) or (args.converge > 1):
 		Print("ERROR: Convergence criterion CONVERGE is out of range (must be between 0 and 1).  Exiting.\n")
 		exit()
@@ -631,10 +627,10 @@ def main():
 	parser.add_argument("--bc",			type=str,		default=None,		action="store",		help="Name of boundary conditions file (initial distribution and final states; default is NAME.bc)")
 	parser.add_argument("--max-moment",	type=int,		default=1,		action="store",		help="Maximum moment to calculate (default is 1)")
 	parser.add_argument("--calc-action", 								action="store_true",	help="If set, the script will calculate moments of path action")	
-	parser.add_argument("--num-state-funcs", type=int,	default=0,		action="store",		help="Number of state functions included in network file for which to calculate averages over path lengths (default is 0)")	
-	parser.add_argument("--length-res",	type=int,		default=1,		action="store",		help="Store path length distributions at this resolution (default is 1); this can significantly improve performance and reduce output file size when calculating up to very long paths")
+	parser.add_argument("--num-state-funcs", type=int,	default=0,		action="store",		help="Number of state functions included in network file for which to calculate their average values at each jump (default is 0)")	
+	parser.add_argument("--length-res",	type=int,		default=1,		action="store",		help="Store path length distributions at this resolution (default is 1); this can significantly reduce runtime and output file size when calculating very long paths")
 	parser.add_argument("--length-min",	type=int,		default=0,		action="store",		help="Store path length distributions starting from this value (default is 0)")
-	parser.add_argument("--no-length-dists",							action="store_true",	help="If set, the script will not record any distributions over path length; this can significantly improve performance and reduce output file size")
+	parser.add_argument("--no-length-dists",							action="store_true",	help="If set, the script will not record any distributions over path length; this can significantly reduce runtime and output file size")
 	parser.add_argument("--debug",									action="store_true",	help="If set, the script will output the entire distribution of moments over path lengths (according to LENGTH_RES and LENGTH_MIN)")
 	parser.add_argument("--converge", 		type=float,	default=1.e-8,		action="store",		help="Convergence criterion (default is 1e-8)")
 	parser.add_argument("--max-jumps",		type=int,		default=10000000,	action="store",		help="Maximum number of jumps to calculate (default is 10000000)")
