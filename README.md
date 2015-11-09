@@ -12,12 +12,12 @@ PathMAN is licensed under GNU General Public License version 3 (see LICENSE for 
 
 Here is an overview of the files included in the repository:
 
-* `pathman.py`: main script for calculating path statistics for a CTRW
-* `Generate_lattice.py`: generates input files for a CTRW on an N-dimensional square lattice to be analyzed by `pathman.py`
-* `Generate_RBM.py`: generates input files for a CTRW on a random barrier model (RBM, on an N-dimensional square lattice) to be analyzed by `pathman.py`
-* `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM (Fig. 5 in the paper)
+* `pathman.py`: main script that calculates path statistics for a CTRW
+* `Generate_lattice.py`: generates input files for a CTRW on an multidimensional square lattice to be analyzed by `pathman.py`
+* `Generate_RBM.py`: generates input files for a CTRW on a random barrier model (RBM, on an multidimensional square lattice) to be analyzed by `pathman.py`
+* `Plot_RBM_output.py`: makes a few simple plots of path statistics for the 2D RBM (similar to Fig. 5 in the aforementioned paper)
 * `Example_1Dlattice`: contains input and output files for an example on a 1D lattice (referred to in the documentation below)
-* `Example_RBM`: contains input and output files for an example of the 2D RBM (Fig. 5 in the paper)
+* `Example_RBM`: contains input and output files for an example of the 2D RBM (same as Fig. 5 in the paper)
 
 # Usage for `pathman.py`
 
@@ -25,7 +25,7 @@ This is the main script that calculates path statistics for a CTRW on any discre
 
 ## Input files
 
-This script requires two input files.  The **network file** defines the network of states and the jump probabilities and waiting time moments of the CTRW.  The file name is specified with the command line argument `--network`, or if the whole run is named using `--name`, the network file will be assumed to be `NAME.network`.  As an example, consider an ordinary Markov process on a 1D lattice of length 10, where rates of jumping between neighboring states are all equal.  (All input and output files for this example are included in `Example_1Dlattice`.)  The network file would be:
+This script requires two input files.  The **network file** defines the network of states and their jump probabilities and waiting time moments in the CTRW.  The file name is specified with the command line argument `--network`, or if the whole run is named using `--name`, the network file will be assumed to be `NAME.network`.  As an example, consider an ordinary Markov process on a 1D lattice of length 10, where rates of jumping between neighboring states are all equal.  (All input and output files for this example are included in `Example_1Dlattice`.)  The network file would be:
 
 ```
 # State name    Outgoing jump weights   Waiting time moments    State functions
@@ -46,7 +46,7 @@ Each line corresponds to a state in the network, with four columns (separated by
 1. The first column shows the state's name (a string without whitespace).  For the 1D lattice example, we just use the integer position on the lattice.
 2. The second column shows the outgoing jump weights, listing each jump as a pair of parameters (name of destination state and weight) separated by a comma.  Different pairs of jump parameters are separated by semicolons.  The jump weights, when normalized over all outgoing jumps for a state, will be the jump probabilities; the script will normalize them automatically.  Hence, for an ordinary Markov process the jump weights can be given as the transition rates.  In the example each site has jumps to its nearest neighbors on the lattice with equal rates (arbitrarily set to 1.0).
 3. The third column lists the waiting time moments for that state, separated by commas.  Since the zeroth moment is always 1, the first waiting time moment in the list is assumed to be the mean.  Each state must have at least the first moment and at least as many moments as specified by `--max-moment`, which determines the maximum moment of path statistics `pathman.py` will calculate.  In the example we include the first four moments, assuming an ordinary Markov process where the mean waiting time is the inverse of the sum of outgoing jump rates, and the waiting time distribution is exponential.
-4. The fourth column, which is optional, lists values of any state functions (separated by commas) to average over, i.e., the script will calculate the average value for each state function at each jump along the path.  The file must include the same number of state function values for all states.  For the example we consider a single state function that is just the position on the lattice.
+4. The fourth column, which is optional, lists values of any state functions (separated by commas) to average over, i.e., the script will calculate the average value of each state function at each jump along the path.  The file must include the same number of state function values for all states.  For the example we consider a single state function that is just the position on the lattice.
 
 The second input is the **boundary conditions file**, which defines the path boundary conditions: the initial probability distribution over states and the set of final states.  For example, with the 1D lattice we might have
 
@@ -62,6 +62,8 @@ This file always has two lines:
 
 1. The first line lists state names and their initial probabilities separated by commas, with spaces separating the different states.  The script assumes any states in the network unlisted here have zero initial probability.  The initial probabilities do not need to be normalized, as the script will do this automatically.  For the 1D lattice example, the initial distribution is localized in the middle of the lattice, half at position 5 and half at position 6.
 2. The second line lists the final states separated by spaces.  For the example, there are two final states, one at each edge of the lattice (positions 1 and 10).
+
+Empty lines or lines beginning with `#` are ignored in all input files.
 
 ## Output
 
@@ -111,7 +113,7 @@ Besides printing some basic information about the run (command used, input and o
 
 A few output files contain more detailed path statistics.  These are all labeled using the argument `--name`, but with different extensions:
 
-* Moments file (`NAME.moments`): this contains a list of final states with path time moments (and path action moments if specified) for each.  The moments are unconditional, i.e., they are weighted by the total probability of reaching that final state from the initial distribution (commitment probability).  For the 1D example, this will be:
+* Moments file (`NAME.moments`): this contains a list of final states with path time moments (and path action moments if requested) for each.  The moments are unconditional, i.e., they are weighted by the total probability of reaching that final state from the initial distribution (commitment probability).  For the 1D example, this will be:
 ```
 # Final_state       tbar0               tbar1               tbar2               tbar3               tbar4         
 1                   0.499999999994      4.99999999867       84.9999997172       2120.99993964       70367.9870674 
