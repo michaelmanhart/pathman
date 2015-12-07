@@ -1,6 +1,6 @@
 ################################################################################
 #    PathMAN: Path Matrix Algorithm for Networks
-#    Copyright (C) 2015 Michael Manhart and Willow Kion-Crosby
+#    Copyright (c) 2015 Michael Manhart and Willow Kion-Crosby
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
